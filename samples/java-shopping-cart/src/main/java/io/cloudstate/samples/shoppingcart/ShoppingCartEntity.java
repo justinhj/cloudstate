@@ -76,6 +76,26 @@ public class ShoppingCartEntity {
   }
 
   @CommandHandler
+  public Empty addItems(Shoppingcart.AddLineItems addLineItems, CommandContext ctx) {
+    for (Shoppingcart.LineItem item : addLineItems.getLineItemsList()) {
+      if (item.getQuantity() <= 0) {
+        ctx.fail("Cannot add negative quantity of to item" + item.getProductId());
+      }
+      ctx.emit(
+          Domain.ItemAdded.newBuilder()
+              .setItem(
+                  Domain.LineItem.newBuilder()
+                      .setProductId(item.getProductId())
+                      .setName(item.getName())
+                      .setQuantity(item.getQuantity())
+                      .build())
+              .build());
+    }
+
+    return Empty.getDefaultInstance();
+  }
+
+  @CommandHandler
   public Empty removeItem(Shoppingcart.RemoveLineItem item, CommandContext ctx) {
     if (!cart.containsKey(item.getProductId())) {
       ctx.fail("Cannot remove item " + item.getProductId() + " because it is not in the cart.");
